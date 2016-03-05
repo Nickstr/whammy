@@ -4,7 +4,7 @@
 	vid.compile()
 */
 
-var Whammy = (function(){
+class Whammy {
 	// in this case, frames has a very specific meaning, which will be
 	// detailed once i finish writing the code
 
@@ -568,4 +568,4 @@ var Whammy = (function(){
 		toWebM: toWebM
 		// expose methods of madness
 	}
-})()
+}
