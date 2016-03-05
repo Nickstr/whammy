@@ -556,3 +556,5 @@ class Whammy {
 		}.bind(this));
 	};
 }
+
+module.exports = Whammy;
