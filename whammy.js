@@ -1,15 +1,15 @@
-/*
-	var vid = new Whammy.Video();
-	vid.add(canvas or data url)
-	vid.compile()
-*/
+'use strict'
 
 class Whammy {
 	// in this case, frames has a very specific meaning, which will be
 	// detailed once i finish writing the code
 
-	function toWebM(frames, outputAsArray){
-		var info = checkFrames(frames);
+	constructor() {
+		this.frames = new Array;
+	}
+
+	toWebM(frames, outputAsArray){
+		var info = this.checkFrames(frames);
 
 		//max duration by cluster in milliseconds
 		var CLUSTER_MAX_DURATION = 30000;
@@ -67,7 +67,7 @@ class Whammy {
 								"id": 0x5741 // WritingApp
 							},
 							{
-								"data": doubleToString(info.duration),
+								"data": this.doubleToString(info.duration),
 								"id": 0x4489 // Duration
 							}
 						]
@@ -187,7 +187,7 @@ class Whammy {
 							"id": 0xe7 // Timecode
 						}
 					].concat(clusterFrames.map(function(webp){
-						var block = makeSimpleBlock({
+						var block = this.makeSimpleBlock({
 							discardable: 0,
 							frame: webp.data.slice(4),
 							invisible: 0,
@@ -201,7 +201,7 @@ class Whammy {
 							data: block,
 							id: 0xa3
 						};
-					}))
+					}.bind(this)))
 				}
 
 			//Add cluster to segment
@@ -215,7 +215,7 @@ class Whammy {
 			if (i >= 3) {
 				cues.data[i-3].data[1].data[1].data = position;
 			}
-			var data = generateEBML([segment.data[i]], outputAsArray);
+			var data = this.generateEBML([segment.data[i]], outputAsArray);
 			position += data.size || data.byteLength || data.length;
 			if (i != 2) { // not cues
 				//Save results to avoid having to encode everything twice
@@ -223,12 +223,12 @@ class Whammy {
 			}
 		}
 
-		return generateEBML(EBML, outputAsArray)
+		return this.generateEBML(EBML, outputAsArray)
 	}
 
 	// sums the lengths of all the frames and gets the duration, woo
 
-	function checkFrames(frames){
+	checkFrames(frames){
 		var width = frames[0].width,
 			height = frames[0].height,
 			duration = frames[0].duration;
@@ -246,7 +246,7 @@ class Whammy {
 	}
 
 
-	function numToBuffer(num){
+	numToBuffer(num){
 		var parts = [];
 		while(num > 0){
 			parts.push(num & 0xff)
@@ -255,7 +255,7 @@ class Whammy {
 		return new Uint8Array(parts.reverse());
 	}
 
-	function numToFixedBuffer(num, size){
+	numToFixedBuffer(num, size){
 		var parts = new Uint8Array(size);
 		for(var i = size - 1; i >= 0; i--){
 			parts[i] = num & 0xff;
@@ -264,7 +264,7 @@ class Whammy {
 		return parts;
 	}
 
-	function strToBuffer(str){
+	strToBuffer(str){
 		// return new Blob([str]);
 
 		var arr = new Uint8Array(str.length);
@@ -283,7 +283,7 @@ class Whammy {
 	// at all really, but the reason is that there's some code below that i dont really
 	// feel like understanding, and this is easier than using my brain.
 
-	function bitsToBuffer(bits){
+	bitsToBuffer(bits){
 		var data = [];
 		var pad = (bits.length % 8) ? (new Array(1 + 8 - (bits.length % 8))).join('0') : '';
 		bits = pad + bits;
@@ -293,7 +293,7 @@ class Whammy {
 		return new Uint8Array(data);
 	}
 
-	function generateEBML(json, outputAsArray){
+	generateEBML(json, outputAsArray){
 		var ebml = [];
 		for(var i = 0; i < json.length; i++){
 			if (!('id' in json[i])){
@@ -303,9 +303,9 @@ class Whammy {
 			}
 
 			var data = json[i].data;
-			if(typeof data == 'object') data = generateEBML(data, outputAsArray);
-			if(typeof data == 'number') data = ('size' in json[i]) ? numToFixedBuffer(data, json[i].size) : bitsToBuffer(data.toString(2));
-			if(typeof data == 'string') data = strToBuffer(data);
+			if(typeof data == 'object') data = this.generateEBML(data, outputAsArray);
+			if(typeof data == 'number') data = ('size' in json[i]) ? this.numToFixedBuffer(data, json[i].size) : this.bitsToBuffer(data.toString(2));
+			if(typeof data == 'string') data = this.strToBuffer(data);
 
 			if(data.length){
 				var z = z;
@@ -321,8 +321,8 @@ class Whammy {
 			//going to fix this, i'm probably just going to write some hacky thing which
 			//converts that string into a buffer-esque thing
 
-			ebml.push(numToBuffer(json[i].id));
-			ebml.push(bitsToBuffer(size));
+			ebml.push(this.numToBuffer(json[i].id));
+			ebml.push(this.bitsToBuffer(size));
 			ebml.push(data)
 
 
@@ -338,7 +338,7 @@ class Whammy {
 		}
 	}
 
-	function toFlatArray(arr, outBuffer){
+	toFlatArray(arr, outBuffer){
 		if(outBuffer == null){
 			outBuffer = [];
 		}
@@ -361,7 +361,7 @@ class Whammy {
 
 	//Converting between a string of 0010101001's and binary back and forth is probably inefficient
 	//TODO: get rid of this function
-	function toBinStr_old(bits){
+	toBinStr_old(bits){
 		var data = '';
 		var pad = (bits.length % 8) ? (new Array(1 + 8 - (bits.length % 8))).join('0') : '';
 		bits = pad + bits;
@@ -371,7 +371,7 @@ class Whammy {
 		return data;
 	}
 
-	function generateEBML_old(json){
+	generateEBML_old(json){
 		var ebml = '';
 		for(var i = 0; i < json.length; i++){
 			var data = json[i].data;
@@ -390,11 +390,11 @@ class Whammy {
 		return ebml;
 	}
 
-	//woot, a function that's actually written for this project!
+	//woot, a that's actually written for this project!
 	//this parses some json markup and makes it into that binary magic
 	//which can then get shoved into the matroska comtainer (peaceably)
 
-	function makeSimpleBlock(data){
+	makeSimpleBlock(data){
 		var flags = 0;
 		if (data.keyframe) flags |= 128;
 		if (data.invisible) flags |= 8;
@@ -412,7 +412,7 @@ class Whammy {
 
 	// here's something else taken verbatim from weppy, awesome rite?
 
-	function parseWebP(riff){
+	parseWebP(riff){
 		var VP8 = riff.RIFF[0].WEBP[0];
 
 		var frame_start = VP8.indexOf('\x9d\x01\x2a'); //A VP8 keyframe starts with the 0x9d012a header
@@ -440,9 +440,9 @@ class Whammy {
 	// i can't find anything on google which conforms to this idiomatic
 	// usage, I'm assuming this is just a consequence of some psychotic
 	// break which makes me make up puns. well, enough riff-raff (aha a
-	// rescue of sorts), this function was ripped wholesale from weppy
+	// rescue of sorts), this was ripped wholesale from weppy
 
-	function parseRIFF(string){
+	parseRIFF(string){
 		var offset = 0;
 		var chunks = {};
 
@@ -456,7 +456,7 @@ class Whammy {
 				}).join(''),2);
 				var data = string.substr(offset + 4 + 4, len);
 				offset += 4 + 4 + len;
-				chunks[id].push(parseRIFF(data));
+				chunks[id].push(this.parseRIFF(data));
 			} else if (id == 'WEBP') {
 				// Use (offset + 8) to skip past "VP8 "/"VP8L"/"VP8X" field after "WEBP"
 				chunks[id].push(string.substr(offset + 8));
@@ -470,10 +470,10 @@ class Whammy {
 		return chunks;
 	}
 
-	// here's a little utility function that acts as a utility for other functions
+	// here's a little utility that acts as a utility for other functions
 	// basically, the only purpose is for encoding "Duration", which is encoded as
 	// a double (considerably more difficult to encode than an integer)
-	function doubleToString(num){
+	doubleToString(num){
 		return [].slice.call(
 			new Uint8Array(
 				(
@@ -487,13 +487,13 @@ class Whammy {
 			.join('') // join the bytes in holy matrimony as a string
 	}
 
-	function WhammyVideo(speed, quality){ // a more abstract-ish API
+	WhammyVideo(speed, quality){ // a more abstract-ish API
 		this.frames = [];
 		this.duration = 1000 / speed;
 		this.quality = quality || 0.8;
 	}
 
-	WhammyVideo.prototype.add = function(frame, duration){
+	add(frame, duration){
 		if(typeof duration != 'undefined' && this.duration) throw "you can't pass a duration if the fps is set";
 		if(typeof duration == 'undefined' && !this.duration) throw "if you don't have the fps set, you need to have durations here.";
 	
@@ -514,7 +514,7 @@ class Whammy {
 	};
 
 	// deferred webp encoding. Draws image data to canvas, then encodes as dataUrl
-	WhammyVideo.prototype.encodeFrames = function(callback){
+	encodeFrames(callback){
 
 		if(this.frames[0].image instanceof ImageData){
 
@@ -542,30 +542,17 @@ class Whammy {
 		}
 	};
 
-	WhammyVideo.prototype.compile = function(outputAsArray, callback){
+	compile(outputAsArray, callback){
 
 		this.encodeFrames(function(){
 
-			var webm = new toWebM(this.frames.map(function(frame){
-				var webp = parseWebP(parseRIFF(atob(frame.image.slice(23))));
+			var webm = this.toWebM(this.frames.map(function(frame){
+				var webp = this.parseWebP(this.parseRIFF(atob(frame.image.slice(23))));
 				webp.duration = frame.duration;
 				return webp;
-			}), outputAsArray);
+			}.bind(this)), outputAsArray);
 			callback(webm);
 			
 		}.bind(this));
 	};
-
-	return {
-		Video: WhammyVideo,
-		fromImageArray: function(images, fps, outputAsArray){
-			return toWebM(images.map(function(image){
-				var webp = parseWebP(parseRIFF(atob(image.slice(23))))
-				webp.duration = 1000 / fps;
-				return webp;
-			}), outputAsArray)
-		},
-		toWebM: toWebM
-		// expose methods of madness
-	}
 }

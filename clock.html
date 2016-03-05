@@ -120,13 +120,13 @@ function clock(time){
 
 // the actual demo code, yaaay
 var last_time = +new Date;
-var video = new Whammy.Video(15);
+var video = new Whammy(15);
 var progress = document.getElementById('progress');
 
 function nextFrame(){
 	progress.value++;
 	var context = clock(last_time += 1000);
-	video.add(context);
+	video.add(context.canvas, 20);
 	if(progress.value / progress.max < 1){
 		requestAnimationFrame(nextFrame);
 		document.getElementById('status').innerHTML = "Drawing Frames";
