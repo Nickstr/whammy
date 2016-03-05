@@ -4,8 +4,10 @@ class Whammy {
 	// in this case, frames has a very specific meaning, which will be
 	// detailed once i finish writing the code
 
-	constructor() {
-		this.frames = new Array;
+	constructor(speed, quality){ // a more abstract-ish API
+		this.frames = [];
+		this.duration = 1000 / speed;
+		this.quality = quality || 0.8;
 	}
 
 	toWebM(frames, outputAsArray){
@@ -485,12 +487,6 @@ class Whammy {
 			})
 			.reverse() //correct the byte endianness (assume it's little endian for now)
 			.join('') // join the bytes in holy matrimony as a string
-	}
-
-	WhammyVideo(speed, quality){ // a more abstract-ish API
-		this.frames = [];
-		this.duration = 1000 / speed;
-		this.quality = quality || 0.8;
 	}
 
 	add(frame, duration){
