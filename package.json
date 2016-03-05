@@ -1,6 +1,16 @@
 {
-  "name": "whammy-node",
+  "name": "node-whammy",
   "version": "0.0.1",
-  "description": "",
-  "main": "whammy.js"
+  "description": "webm encoder",
+  "main": "whammy.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nickstr/whammy.git"
+  },
+  "dependencies": {
+    "atob": "latest"
+  },
+  "author": {
+    "name": "Nickstr"
+  }
 }
